@@ -1,18 +1,14 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
-	"strings"
 
-	"github.com/usace/event-generator/eventgenerator"
 	"github.com/usace/wat-go-sdk/plugin"
 )
 
 func main() {
-	fmt.Println("event generator!")
+	fmt.Println("starting the hello world plugin!")
 	var payloadPath string
 	flag.StringVar(&payloadPath, "payload", "pathtopayload.yml", "please specify an input file using `-payload pathtopayload.yml`")
 	flag.Parse()
@@ -22,7 +18,7 @@ func main() {
 			Progress:  0,
 			Level:     plugin.ERROR,
 			Message:   "given a blank path...\n\tplease specify an input file using `-payload pathtopayload.yml`",
-			Sender:    "eventgenerator",
+			Sender:    "helloworldplugin",
 			PayloadId: "unknown payloadid because the plugin package could not be properly initalized",
 		})
 		return
@@ -44,56 +40,13 @@ func main() {
 	}
 }
 func computePayload(payload plugin.ModelPayload) error {
-	if len(payload.Outputs) != 1 {
-		err := errors.New("more than one output was defined")
-		logError(err, payload)
-		return err
-	}
-	var modelResourceInfo plugin.ResourceInfo
-	found := false
-	for _, rfd := range payload.Inputs {
-		if strings.Contains(rfd.FileName, payload.Model.Name+".json") {
-			modelResourceInfo = rfd.ResourceInfo
-			found = true
-		}
-	}
-	if !found {
-		err := fmt.Errorf("could not find %s.json", payload.Model.Name)
-		logError(err, payload)
-		return err
-	}
-	modelBytes, err := plugin.DownloadObject(modelResourceInfo)
-	if err != nil {
-		logError(err, payload)
-		return err
-	}
-	var eventGeneratorModel eventgenerator.Model
-	err = json.Unmarshal(modelBytes, &eventGeneratorModel)
-	if err != nil {
-		logError(err, payload)
-		return err
-	}
-	modelResult, err := eventGeneratorModel.Compute(payload.EventIndex)
-	if err != nil {
-		logError(err, payload)
-		return err
-	}
-	bytes, err := json.Marshal(modelResult)
-	if err != nil {
-		logError(err, payload)
-		return err
-	}
-	err = plugin.UpLoadFile(payload.Outputs[0].ResourceInfo, bytes)
-	if err != nil {
-		logError(err, payload)
-		return err
-	}
+	//payload contains information about resources for running and where to put output
 	plugin.Log(plugin.Message{
 		Status:    plugin.SUCCEEDED,
 		Progress:  100,
 		Level:     plugin.INFO,
-		Message:   "event generation complete",
-		Sender:    "eventgenerator",
+		Message:   "Hello World!!",
+		Sender:    "helloworldplugin",
 		PayloadId: payload.Id,
 	})
 	return nil
@@ -104,7 +57,7 @@ func logError(err error, payload plugin.ModelPayload) {
 		Progress:  0,
 		Level:     plugin.ERROR,
 		Message:   err.Error(),
-		Sender:    "eventgenerator",
+		Sender:    "helloworldplugin",
 		PayloadId: payload.Id,
 	})
 }

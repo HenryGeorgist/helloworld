@@ -1,8 +1,8 @@
 #!/bin/bash
 
-TAG=v0.0.5
+TAG=v0.0.1
 REPO=williamlehman
 
-docker build . --target prod  -t $REPO/eventgeneratorplugin:$TAG
+docker build . --target prod  -t $REPO/helloworldplugin:$TAG
 
-docker push $REPO/eventgeneratorplugin:$TAG
+docker push $REPO/helloworldplugin:$TAG

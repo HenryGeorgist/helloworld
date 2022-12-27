@@ -1,0 +1,1 @@
+{"attributes":{"1":1,"2":"2","3":{"3a":"three-a","3b":"three-b"}},"inputs":[{"name":"Input1","storeType":"S3","envPrefix":"HELLO_WORLD","paths":["hello_world_test"],"params":{"P1":"TEST1","P2":"TEST2"}}],"outputs":[{"name":"Output1","storeType":"S3","envPrefix":"HELLO_WORLD","paths":["hello_world_test"],"params":{"OP1":"OTEST1","OP2":"OTEST2"}}]}

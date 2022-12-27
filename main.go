@@ -1,63 +1,72 @@
 package main
 
 import (
-	"flag"
+	"encoding/json"
 	"fmt"
 
-	"github.com/usace/wat-go-sdk/plugin"
+	"github.com/usace/wat-go"
 )
 
 func main() {
 	fmt.Println("starting the hello world plugin!")
-	var payloadPath string
-	flag.StringVar(&payloadPath, "payload", "pathtopayload.yml", "please specify an input file using `-payload pathtopayload.yml`")
-	flag.Parse()
-	if payloadPath == "" {
-		plugin.Log(plugin.Message{
-			Status:    plugin.FAILED,
+	ws, err := wat.NewS3WatStore()
+	if err != nil {
+		wat.Log(wat.Message{
+			Status:    wat.FAILED,
 			Progress:  0,
-			Level:     plugin.ERROR,
-			Message:   "given a blank path...\n\tplease specify an input file using `-payload pathtopayload.yml`",
+			Level:     wat.ERROR,
+			Message:   err.Error(),
 			Sender:    "helloworldplugin",
-			PayloadId: "unknown payloadid because the plugin package could not be properly initalized",
+			PayloadId: "unknown",
 		})
-		return
 	}
-	err := plugin.InitConfigFromEnv()
+
+	payload, err := ws.GetPayload()
 	if err != nil {
-		logError(err, plugin.ModelPayload{Id: "unknownpayloadid"})
-		return
-	}
-	payload, err := plugin.LoadPayload(payloadPath)
-	if err != nil {
-		logError(err, plugin.ModelPayload{Id: "unknownpayloadid"})
+		wat.Log(wat.Message{
+			Status:    wat.FAILED,
+			Progress:  0,
+			Level:     wat.ERROR,
+			Message:   err.Error(),
+			Sender:    "helloworldplugin",
+			PayloadId: "unknown",
+		})
 		return
 	}
 	err = computePayload(payload)
 	if err != nil {
-		logError(err, payload)
+		wat.Log(wat.Message{
+			Status:    wat.FAILED,
+			Progress:  0,
+			Level:     wat.ERROR,
+			Message:   err.Error(),
+			Sender:    "helloworldplugin",
+			PayloadId: "unknown",
+		})
 		return
 	}
 }
-func computePayload(payload plugin.ModelPayload) error {
+func computePayload(payload wat.Payload) error {
 	//payload contains information about resources for running and where to put output
-	plugin.Log(plugin.Message{
-		Status:    plugin.SUCCEEDED,
+	data, err := json.Marshal(payload)
+	if err != nil {
+		wat.Log(wat.Message{
+			Status:    wat.FAILED,
+			Progress:  0,
+			Level:     wat.ERROR,
+			Message:   err.Error(),
+			Sender:    "helloworldplugin",
+			PayloadId: "unknown",
+		})
+		return err
+	}
+	wat.Log(wat.Message{
+		Status:    wat.SUCCEEDED,
 		Progress:  100,
-		Level:     plugin.INFO,
-		Message:   "Hello World!!",
+		Level:     wat.INFO,
+		Message:   string(data),
 		Sender:    "helloworldplugin",
-		PayloadId: payload.Id,
+		PayloadId: "unknown",
 	})
 	return nil
-}
-func logError(err error, payload plugin.ModelPayload) {
-	plugin.Log(plugin.Message{
-		Status:    plugin.FAILED,
-		Progress:  0,
-		Level:     plugin.ERROR,
-		Message:   err.Error(),
-		Sender:    "helloworldplugin",
-		PayloadId: payload.Id,
-	})
 }
